@@ -1,5 +1,6 @@
 import telebot
 from telebot import types
+from api import get_currency
 
 # Read TOKEN from file
 with open("token.txt", "r") as f:
@@ -14,7 +15,7 @@ default_text_messages = {
 	"welcome_message": "[welcome message]",
 	"help_message": "[throw description]",
 	"currency_list": "[currency list]",
-	"enter number": "[enter number in UAH]"
+	"enter_number": "[enter number in UAH]"
 }
 
 # List of available currency
@@ -48,8 +49,8 @@ request_currency_list_markup.add(item)
 #
 # Used in code:
 # 1. With /get_currency_list
-currency_list_markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
-item = types.KeyboardButton("USD")
+currency_list_markup = types.InlineKeyboardMarkup()
+item = types.InlineKeyboardButton("USD", callback_data="usd")
 currency_list_markup.add(item)
 
 # BOT COMMAND HANDLERS:
@@ -93,14 +94,23 @@ def handle_currency_list_request(message):
 # Message handler that handles currency_list_markup and then sends message asking user to enter his price in UAH
 # and parses this price by calling another handler handle_price_request()
 def handle_currency_exchange(message):
-	if message.text in list_of_currency:
+	text = message.text
+	if text in list_of_currency:
 		msg = bot.send_message(message.chat.id, default_text_messages["enter_number"])
-		bot.register_next_step_handler(msg, handle_price_request)
+		#bot.register_next_step_handler(msg, handle_price_request(msg, text))
+		bot.register_next_step_handler(msg, handle_price_request(msg, text))
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == "usd":
+        bot.send_message(call.id, "Answer is Yes")
 
 # Message handler that handles the price entered by user and ...
-def handle_price_request(message):
-	if isinstance(message.text):
-		pass
+def handle_price_request(message, c):
+	text = message.text
+	res = get_currency(c, text)
+	bot.send_message(message.chat.id, res)
+
 		# тут треба вже request
 
 # Start the bot polling

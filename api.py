@@ -6,8 +6,9 @@ rates = requests.get('https://openexchangerates.org/api/latest.json?app_id=' + A
 from_rate = 1 / rates['UAH']
 
 def get_currency(currency, from_num):
+    print(currency, from_num)
     to_rate = rates[currency] * from_rate
-    return to_rate * from_num
+    return to_rate * int(from_num)
 
 
 
