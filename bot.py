@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from api import convert_currency, get_currency_rate, params
+from api import convert_currency, get_currency_rate
 
 # Read TOKEN from file
 with open("token.txt", "r") as f:
@@ -9,14 +9,10 @@ with open("token.txt", "r") as f:
 # Create the bot
 bot = telebot.TeleBot(TOKEN)
 
-# Dictionary of messages thaaat bot can send
-# TODO: fill in messages
-default_text_messages = {
-    "welcome_message": "Я бот ExchangeRate🤖. Мене створили, щоб я допомагав тобі конвертувати валюту та дізнатися поточний курс",
-    "help_message": "[throw description]",
-    "currency_list": "[currency list]",
-    "enter_number": "[enter number in UAH]"
-}
+# dictionary of users to store currency they are working with
+# key: user chat.id
+# value: current currency
+user_currency = {}
 
 # List of available currency
 # TODO: fill in the list
@@ -27,6 +23,27 @@ list_of_currency = {"AUD": "Австралийский доллар", "ARS": "А
                     "NZD": "Новозеландский доллар", "RUB": "Российский рубль", "GBP": "Фунт стерлингов",
                     "TRY": "Турецкая лира", "JPY": "Японская иена"
                     }
+
+# Converting currency list into readable message
+def currency_list_to_message(dict):
+    message = ""
+    for currency_code in dict:
+        message = message + currency_code + " - " + dict[currency_code] + "\n"
+    return message
+
+# Dictionary of messages thaaat bot can send
+# TODO: fill in messages
+default_text_messages = {
+    "welcome_message": "Я бот ExchangeRate🤖. Мене створили, щоб я допомагав тобі конвертувати валюту та дізнатися поточний курс",
+    "help_message": "[throw description]",
+    "currency_list": currency_list_to_message(list_of_currency),
+    "enter_number": "[enter number in UAH]",
+    "currency_not_found": "[currency not found]",
+    "incorrect_number": "[incorrect number]",
+    "cant_recognize_text": "[cant_recognize_text]"
+}
+
+
 
 
 # Creating keyboard markup for transferring user to help message (/help)
@@ -99,32 +116,53 @@ def send_welcome(message):
 def handle_help_request(message):
     if message.text == "Як працює цей бот?":
         send_help(message)
+    else:
+        bot.send_message(message.chat.id, default_text_messages["cant_recognize_text"])
 
 
 # Message handler that handles request_currency_list_markup and calls send_currency_list()
 def handle_currency_list_request(message):
     if message.text == "Список валют":
         send_currency_list(message)
+    else:
+        bot.send_message(message.chat.id, default_text_messages["cant_recognize_text"])
 
 
 # Message handler that handles currency_list_markup and then sends message asking user to enter his price in UAH
 # and parses this price by calling another handler handle_price_request()
 def handle_currency_exchange(message):
-    text = message.text
-    params["to"] = text
-    if text in list_of_currency.keys():
+    currency = message.text
+    if currency in list_of_currency.keys():
+        user_currency[message.chat.id] = currency
         msg = bot.send_message(message.chat.id, default_text_messages["enter_number"])
         bot.register_next_step_handler(msg, handle_price_request)
+    elif text == "/start":
+        send_welcome(message)
+    elif text == "/help":
+        send_help(message)
+    elif text == "/get_currency_list":
+        send_currency_list(message)
+    else:
+        bot.send_message(message.chat.id, default_text_messages["currency_not_found"])
+        send_currency_list(message)
 
 
 # Message handler that handles the price entered by user and ...
 def handle_price_request(message):
-	text = message.text
-	if text.isdigit():
-		bot.send_message(message.chat.id, "Поточний курс " + list_of_currency[params["to"]] + ": " + str(get_currency_rate(params["to"])))
-		bot.send_message(message.chat.id, text + " " + "UAH = " +str(convert_currency(params["to"], text)) + " " + params["to"])
-		send_currency_list(message)
-
+    text = message.text
+    if text.isdigit():
+        bot.send_message(message.chat.id, "Поточний курс " + list_of_currency[user_currency[message.chat.id]] + ": " + str(get_currency_rate(user_currency[message.chat.id])))
+        bot.send_message(message.chat.id, text + " " + "UAH = " +str(convert_currency(user_currency[message.chat.id], text)) + " " + user_currency[message.chat.id])
+        send_currency_list(message)
+    elif text == "/start":
+        send_welcome(message)
+    elif text == "/help":
+        send_help(message)
+    elif text == "/get_currency_list":
+        send_currency_list(message)
+    else:
+        bot.send_message(message.chat.id, default_text_messages["incorrect_number"])
+        send_currency_list(message)
 
 # Start the bot polling
 bot.infinity_polling()

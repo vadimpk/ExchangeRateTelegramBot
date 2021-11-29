@@ -8,7 +8,7 @@ params = {
     'to': 'USD'
 }
 
-from_rate = 1 / rates[params['from']]
+from_rate = 1 / rates['UAH']
 
 def convert_currency(currency, from_num):
     to_rate = rates[currency] * from_rate
