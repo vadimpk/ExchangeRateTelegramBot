@@ -6,10 +6,10 @@ import requests
 
 # Read TOKEN from file
 with open("api_token.txt", "r") as f:
-    TOKEN = f.read().rstrip()
+    API_TOKEN = f.read().rstrip()
 
 # make request
-rates = requests.get('https://openexchangerates.org/api/latest.json?app_id=' + API_KEY).json()['rates']
+rates = requests.get('https://openexchangerates.org/api/latest.json?app_id=' + API_TOKEN).json()['rates']
 
 from_rate = 1 / rates['UAH']
 
