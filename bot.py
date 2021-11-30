@@ -151,7 +151,7 @@ def handle_currency_exchange(message):
         send_welcome(message)
     elif currency == "/help":
         send_help(message)
-    elif text == "/get_currency_list":
+    elif currency == "/get_currency_list":
         send_currency_list(message)
     else:
         bot.send_message(message.chat.id, default_text_messages["currency_not_found"])

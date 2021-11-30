@@ -6,7 +6,7 @@ import requests
 
 # Read TOKEN from file
 with open("api_token.txt", "r") as f:
-    TOKEN = f.read().rstrip()
+    API_KEY = f.read().rstrip()
 
 # make request
 rates = requests.get('https://openexchangerates.org/api/latest.json?app_id=' + API_KEY).json()['rates']
