@@ -129,7 +129,7 @@ def handle_help_request(message):
         send_currency_list(message)
     else:
         bot.send_message(message.chat.id, default_text_messages["cant_recognize_text"])
-
+ 
 
 # Message handler that handles request_currency_list_markup and calls send_currency_list()
 def handle_currency_list_request(message):
